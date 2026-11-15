@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Algorithm Chronicle — Searching & Sorting Broadsheet</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Authentic Vintage School Newspaper & Typewriter Aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            newsprint: 'var(--bg-newsprint)',
+            newsprintDark: 'var(--bg-newsprint-dark)',
+            newsprintLight: 'var(--bg-newsprint-light)',
+            ink: 'var(--text-ink)',
+            inkMuted: 'var(--text-ink-muted)',
+            editorialRed: 'var(--accent-red)',
+            editorialNavy: 'var(--accent-navy)',
+            editorialGold: 'var(--accent-gold)',
+            ruleBorder: 'var(--border-rule)',
+          },
+          fontFamily: {
+            masthead: ['"UnifrakturMaguntia"', 'Georgia', 'serif'],
+            serifHeadline: ['"Playfair Display"', 'Georgia', 'serif'],
+            monoPress: ['"Courier Prime"', 'monospace'],
+            sansBody: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Theme CSS Variables: Daylight Newsprint (Default) & Late Night Newsroom (Dark) */
+    :root {
+      --bg-outer: #dcd5c7;
+      --bg-dot: rgba(26, 25, 23, 0.08);
+      --bg-newsprint: #f4f0e8;
+      --bg-newsprint-dark: #e9e2d3;
+      --bg-newsprint-light: #faf8f3;
+      --text-ink: #1c1917;
+      --text-ink-muted: #4a463f;
+      --accent-red: #9e2a2b;
+      --accent-navy: #1d3557;
+      --accent-gold: #b58328;
+      --border-rule: #2b2925;
+      --grid-line: rgba(26, 25, 23, 0.03);
+      --sheet-shadow: 0 12px 35px rgba(26, 25, 23, 0.22), 0 0 0 1px rgba(26, 25, 23, 0.15);
+    }
+
+    html.dark {
+      --bg-outer: #0d0c0b;
+      --bg-dot: rgba(231, 226, 216, 0.06);
+      --bg-newsprint: #161513;
+      --bg-newsprint-dark: #211f1c;
+      --bg-newsprint-light: #1c1a17;
+      --text-ink: #e7e2d8;
+      --text-ink-muted: #a8a092;
+      --accent-red: #d9534f;
+      --accent-navy: #6d9dc5;
+      --accent-gold: #d4a359;
+      --border-rule: #4a453d;
+      --grid-line: rgba(231, 226, 216, 0.03);
+      --sheet-shadow: 0 14px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(231, 226, 216, 0.14);
+    }
+
+    /* Subtle Newsprint Texture & Editorial Styling */
+    body {
+      background-color: var(--bg-outer);
+      background-image: radial-gradient(var(--bg-dot) 1px, transparent 0);
+      background-size: 18px 18px;
+      color: var(--text-ink);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .newspaper-sheet {
+      background-color: var(--bg-newsprint);
+      background-image: 
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+      box-shadow: var(--sheet-shadow);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .double-rule-top {
+      border-top: 4px double var(--text-ink);
+    }
+
+    .double-rule-bottom {
+      border-bottom: 4px double var(--text-ink);
+    }
+
+    .press-btn {
+      transition: all 0.15s ease;
+      box-shadow: 2px 2px 0px var(--text-ink);
+    }
+    .press-btn:hover:not(:disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px var(--text-ink);
+    }
+    .press-btn:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px var(--text-ink);
+    }
+
+    /* Custom Scrollbar for Ledger & C++ Drawer */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-newsprint-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-ink-muted);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-ink);
+    }
+  </style>
+</head>
+<body class="min-h-screen py-4 px-2 sm:px-6 lg:px-8 antialiased">
+
+  <!-- Main Broadsheet Container -->
+  <div class="max-w-7xl mx-auto newspaper-sheet rounded-sm p-4 sm:p-8 lg:p-10 border border-ruleBorder">
+
+    <!-- Top Ear Boxes & Masthead Header -->
+    <header class="mb-6">
+      <!-- Top Micro Bar with Theme Switcher -->
+      <div class="flex flex-wrap justify-between items-center text-xs font-monoPress uppercase tracking-widest text-inkMuted border-b border-ruleBorder pb-2.5 mb-3 gap-2">
+        <span>"ALL THE ALGORITHMS FIT TO COMPUTE"</span>
+        <span id="live-dateline">SUNDAY, NOVEMBER 15, 2026</span>
+        <button id="theme-toggle-btn" type="button" onclick="toggleTheme()" aria-label="Toggle Light and Dark Theme" class="press-btn inline-flex items-center gap-1.5 px-3 py-1 rounded border border-ink bg-newsprintLight text-ink font-bold text-[11px] cursor-pointer">
+          <span id="theme-icon" aria-hidden="true">🌙</span>
+          <span id="theme-label">DARK MODE
+    
+        
+          </span>
+        </button>
+      </div>
+
+      <!-- Masthead Banner -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 items-center gap-4 py-2">
+        <!-- Left Ear Box -->
+        <div class="hidden lg:block lg:col-span-3 border border-ruleBorder bg-newsprintLight p-2.5 rounded text-center">
+          <p class="font-serifHeadline font-bold text-xs uppercase tracking-wider text-editorialRed">FINAL ACTIVITY EDITION</p>
+          <p class="font-monoPress text-[11px] text-inkMuted mt-1 leading-tight">
+            Interactive Lab Edition for VS Code &amp; C++ Data Structures
+          </p>
+        </div>
+
+        <!-- Newspaper Title & Author Credits -->
+        <div class="lg:col-span-6 text-center">
+          <h1 class="font-masthead text-4xl sm:text-6xl lg:text-7xl tracking-tight text-ink leading-none select-none">
+            The Algorithm Chronicle
+          </h1>
+          <p class="font-serifHeadline italic text-sm sm:text-base text-inkMuted mt-2">
+            Official Campus Broadsheet of Searching &amp; Sorting Mechanics
+          </p>
+          <p class="font-monoPress font-bold text-xs sm:text-sm text-editorialRed tracking-wide mt-1.5 uppercase">
+            by: Samlyster O. Nala (BSIT 2-1)
+          </p>
+        </div>
+
+        <!-- Right Ear Box -->
+        <div class="hidden lg:block lg:col-span-3 border border-ruleBorder bg-newsprintLight p-2.5 rounded text-center">
+          <p class="font-serifHeadline font-bold text-xs uppercase tracking-wider text-editorialNavy">TYPESETTER'S DESK</p>
+          <button onclick="toggleCppModal(true)" class="mt-1.5 w-full press-btn bg-editorialNavy text-newsprintLight font-monoPress text-xs py-1.5 px-2 rounded border border-ink cursor-pointer">
+            [ VIEW C++ SOURCE ]
+          </button>
+        </div>
+      </div>
+
+      <!-- Dateline Banner -->
+      <div class="double-rule-top double-rule-bottom py-2 mt-2 flex flex-wrap justify-between items-center gap-2 text-xs sm:text-sm font-monoPress font-bold tracking-wider uppercase bg-newsprintDark/60 px-3">
+        <span>SUBJECT : DATA STRUCTURE & ALGORITHM</span>
+        <span class="text-editorialRed">★ STEP-BY-STEP SOLUTION LEDGER INCLUDED ★</span>
+        <button onclick="toggleCppModal(true)" class="lg:hidden underline text-editorialNavy font-bold cursor-pointer">
+          [VIEW C++ CODE]
+        </button>
+      </div>
+    </header>
+
+    <!-- Primary Editorial Navigation Bar (Main Menu: [1] Search, [2] Sort, [3] Exit/Reset) -->
+    <nav aria-label="Main Algorithm Menu" class="mb-6 bg-newsprintLight border-2 border-ink p-3 sm:p-4 rounded">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <span class="font-monoPress text-xs uppercase tracking-widest text-editorialRed font-bold block">MAIN DIRECTORY</span>
+          <h2 class="font-serifHeadline font-bold text-lg sm:text-xl text-ink">SEARCHING AND SORTING ALGORITHMS</h2>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button id="tab-search" onclick="switchMainMode('search')" class="press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-newsprint text-ink cursor-pointer">
+            [ 1 ] SEARCH
+          </button>
+          <button id="tab-sort" onclick="switchMainMode('sort')" class="press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-ink text-newsprintLight cursor-pointer">
+            [ 2 ] SORT
+          </button>
+          <button id="tab-exit" onclick="handleExitReset()" class="press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-editorialRed text-newsprintLight cursor-pointer">
+            [ 3 ] EXIT / RESET
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Broadsheet Grid: Left Typesetter Controls (5 cols) | Right Solution Ledger (7 cols) -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: TYPESETTING CONTROL DESK -->
+      <section class="lg:col-span-5 bg-newsprintLight border-2 border-ink rounded p-4 sm:p-5">
+        <div class="border-b-2 border-ink pb-2 mb-4 flex items-center justify-between">
+          <div>
+            <span class="font-monoPress text-[11px] uppercase tracking-widest text-inkMuted">SECTION A • INPUT DESK</span>
+            <h3 id="desk-title" class="font-serifHeadline font-extrabold text-xl sm:text-2xl text-ink">
+              SORTING ALGORITHMS
+            </h3>
+          </div>
+          <span id="option-badge" class="font-monoPress text-xs font-bold px-2.5 py-1 bg-newsprintDark border border-ink rounded">
+            OPTION [ 1 ]
+          </span>
+        </div>
+
+        <!-- ==================== SORTING CONTROL PANEL ==================== -->
+        <div id="panel-sort" class="space-y-4">
+          <!-- Algorithm Selector Grid matching [1] to [9] -->
+          <div>
+            <label class="block font-monoPress text-xs font-bold uppercase tracking-wider text-inkMuted mb-2">
+              SELECT SORTING ALGORITHM:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="sort-algo-buttons">
+              <button type="button" onclick="selectSortAlgo(1)" data-sort="1" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-ink text-newsprintLight font-bold cursor-pointer">
+                [ 1 ] BUBBLE SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(2)" data-sort="2" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 2 ] SELECTION SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(3)" data-sort="3" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 3 ] INSERTION SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(4)" data-sort="4" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 4 ] MERGE SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(5)" data-sort="5" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 5 ] QUICK SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(6)" data-sort="6" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 6 ] SHELL SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(7)" data-sort="7" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 7 ] HEAP SORT
+              </button>
+              <button type="button" onclick="selectSortAlgo(8)" data-sort="8" class="sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer">
+                [ 8 ] COMB SORT
+              </button>
+              <button type="button" onclick="cancelToMain()" class="sm:col-span-2 text-center font-monoPress text-xs sm:text-sm p-2 rounded border border-ink bg-newsprintDark hover:bg-editorialRed hover:text-newsprintLight text-ink font-bold cursor-pointer transition-colors">
+                [ 9 ] CANCEL (RETURN TO MAIN MENU)
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Sort Sub-Menu (Shown only when Option [5] Quick Sort is selected) -->
+          <div id="quicksort-submenu" class="hidden border-2 border-editorialNavy bg-newsprint p-3.5 rounded space-y-2.5">
+            <div class="flex items-center justify-between border-b border-ink pb-1.5">
+              <span class="font-serifHeadline font-bold text-sm text-editorialNavy uppercase">
+                QUICK SORTING ALGORITHMS — PIVOT STRATEGY
+              </span>
+              <span class="font-monoPress text-[11px] font-bold text-editorialRed">SUB-MENU</span>
+            </div>
+
+            <div class="space-y-1.5" id="pivot-buttons">
+              <button type="button" onclick="selectPivotOption(1)" data-pivot="1" class="pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-editorialNavy text-newsprintLight font-bold cursor-pointer">
+                [ 1 ] PICK 1ST ELEMENT AS PIVOT
+              </button>
+              <button type="button" onclick="selectPivotOption(2)" data-pivot="2" class="pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-newsprintLight text-ink cursor-pointer">
+                [ 2 ] PICK LAST ELEMENT AS PIVOT
+              </button>
+              <button type="button" onclick="selectPivotOption(3)" data-pivot="3" class="pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-newsprintLight text-ink cursor-pointer">
+                [ 3 ] PICK A RANDOM NUMBER AS PIVOT
+              </button>
+              <button type="button" onclick="selectPivotOption(4)" data-pivot="4" class="pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-newsprintLight text-ink cursor-pointer">
+                [ 4 ] PICK THE MEDIAN AS PIVOT
+              </button>
+              <button type="button" onclick="cancelQuickSort()" class="w-full text-center font-monoPress text-xs p-2 rounded border border-ink bg-newsprintDark hover:bg-editorialRed hover:text-newsprintLight text-ink font-bold cursor-pointer">
+                [ 5 ] CANCEL (BACK TO SORTING MENU)
+              </button>
+            </div>
+
+            <!-- Extra Input for Pivot Option [3] Random Number -->
+            <div id="random-pivot-box" class="hidden pt-2 border-t border-dashed border-ink">
+              <label for="random-pivot-input" class="block font-monoPress text-xs font-bold text-editorialRed mb-1">
+                ENTER A RANDOM NUMBER :
+              </label>
+              <div class="flex gap-2">
+                <input id="random-pivot-input" type="number" value="24" placeholder="e.g. 24" class="w-full font-monoPress text-sm px-3 py-1.5 bg-newsprintLight border border-ink rounded focus:outline-none focus:ring-2 focus:ring-editorialNavy" />
+                <button type="button" onclick="pickRandomFromArray()" class="font-monoPress text-xs px-3 py-1.5 bg-newsprintDark border border-ink rounded hover:bg-ink hover:text-newsprintLight cursor-pointer whitespace-nowrap">
+                  DICE ROLL
+                </button>
+              </div>
+              <p class="font-sansBody text-[11px] text-inkMuted mt-1">
+                If the number exists in your list, it is used directly as the initial pivot; otherwise, a random element index is chosen.
+              </p>
+            </div>
+          </div>
+
+          <!-- Input Elements Section for Sorting -->
+          <div class="border-t border-ruleBorder pt-3 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-monoPress text-xs font-bold uppercase text-ink">TEXTBOOK PRESETS:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="loadSortPreset(4)" class="font-monoPress text-[11px] px-2.5 py-1 bg-newsprintDark hover:bg-ink hover:text-newsprintLight border border-ink rounded cursor-pointer">
+                  4 Elems (53, 24, 1, 45)
+                </button>
+                <button type="button" onclick="loadSortPreset(5)" class="font-monoPress text-[11px] px-2.5 py-1 bg-newsprintDark hover:bg-ink hover:text-newsprintLight border border-ink rounded cursor-pointer">
+                  5 Elems (53, 24, 1, 45, 3)
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="sort-count" class="block font-monoPress text-xs font-bold uppercase mb-1">
+                  NO. OF ELEMENTS:
+                </label>
+                <input id="sort-count" type="number" min="1" max="25" value="4" oninput="syncCountFromInput('sort')" class="w-full font-monoPress text-sm p-2.5 bg-newsprint border border-ink rounded focus:outline-none focus:ring-2 focus:ring-ink" />
+              </div>
+              <div class="sm:col-span-2">
+                <label for="sort-elements" class="block font-monoPress text-xs font-bold uppercase mb-1">
+                  ELEMENTS (UNSORTED):
+                </label>
+                <input id="sort-elements" type="text" value="53, 24, 1, 45" oninput="syncCountFromArray('sort')" placeholder="e.g. 53, 24, 1, 45" class="w-full font-monoPress text-sm p-2.5 bg-newsprint border border-ink rounded focus:outline-none focus:ring-2 focus:ring-ink" />
+              </div>
+            </div>
+
+            <div id="sort-error-msg" class="hidden font-monoPress text-xs text-editorialRed bg-newsprintDark border border-editorialRed p-2 rounded"></div>
+
+            <button type="button" onclick="executeSort()" class="w-full press-btn bg-editorialRed text-newsprintLight font-serifHeadline font-bold text-base sm:text-lg py-3 px-4 rounded border-2 border-ink tracking-wide uppercase cursor-pointer">
+              RUN SORT &amp; PRINT STEP-BY-STEP SOLUTION
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== SEARCHING CONTROL PANEL ==================== -->
+        <div id="panel-search" class="hidden space-y-4">
+          <div>
+            <label class="block font-monoPress text-xs font-bold uppercase tracking-wider text-inkMuted mb-2">
+              SELECT SEARCHING ALGORITHM:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button type="button" onclick="selectSearchAlgo(1)" data-search="1" class="search-choice-btn font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-ink text-newsprintLight font-bold cursor-pointer">
+                [ 1 ] LINEAR SEARCH
+              </button>
+              <button type="button" onclick="selectSearchAlgo(2)" data-search="2" class="search-choice-btn font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint text-ink cursor-pointer">
+                [ 2 ] BINARY SEARCH
+              </button>
+              <button type="button" onclick="cancelToMain()" class="font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprintDark hover:bg-editorialRed hover:text-newsprintLight text-ink font-bold cursor-pointer">
+                [ 3 ] CANCEL
+              </button>
+            </div>
+          </div>
+
+          <!-- Preset Example Button -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-ruleBorder pt-3">
+            <span class="font-monoPress text-xs font-bold uppercase text-ink">SPECIFICATION EXAMPLE:</span>
+            <button type="button" onclick="loadSearchPreset()" class="font-monoPress text-xs px-3 py-1.5 bg-newsprintDark hover:bg-ink hover:text-newsprintLight border border-ink rounded cursor-pointer font-bold">
+              LOAD DOCUMENT EXAMPLE
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="search-count" class="block font-monoPress text-xs font-bold uppercase mb-1">
+                  NO. OF ELEMENTS:
+                </label>
+                <input id="search-count" type="number" min="1" max="30" value="5" oninput="syncCountFromInput('search')" class="w-full font-monoPress text-sm p-2.5 bg-newsprint border border-ink rounded focus:outline-none focus:ring-2 focus:ring-ink" />
+              </div>
+              <div class="sm:col-span-2">
+                <label id="search-elements-label" for="search-elements" class="block font-monoPress text-xs font-bold uppercase mb-1">
+                  ENTER ELEMENTS:
+                </label>
+                <input id="search-elements" type="text" value="12, 34, 15, 1, 5" oninput="syncCountFromArray('search')" class="w-full font-monoPress text-sm p-2.5 bg-newsprint border border-ink rounded focus:outline-none focus:ring-2 focus:ring-ink" />
+              </div>
+            </div>
+
+            <div>
+              <label for="search-target" class="block font-monoPress text-xs font-bold uppercase mb-1">
+                ENTER NUMBER TO SEARCH:
+              </label>
+              <input id="search-target" type="number" value="34" class="w-full font-monoPress text-sm p-2.5 bg-newsprint border border-ink rounded focus:outline-none focus:ring-2 focus:ring-ink" />
+            </div>
+
+            <div id="search-error-msg" class="hidden font-monoPress text-xs text-editorialRed bg-newsprintDark border border-editorialRed p-2 rounded"></div>
+
+            <button type="button" onclick="executeSearch()" class="w-full press-btn bg-editorialNavy text-newsprintLight font-serifHeadline font-bold text-base sm:text-lg py-3 px-4 rounded border-2 border-ink tracking-wide uppercase cursor-pointer">
+              EXECUTE SEARCH &amp; TRACE INDEX
+            </button>
+          </div>
+        </div>
+
+        <!-- Editorial Legend Box -->
+        <div class="mt-5 pt-3 border-t-2 border-dashed border-ruleBorder">
+          <p class="font-monoPress text-[11px] font-bold uppercase text-inkMuted mb-2">TYPESETTER'S COLOR KEY:</p>
+          <div class="flex flex-wrap gap-2 text-[11px] font-monoPress">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-newsprint border border-ink rounded">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-300 dark:bg-amber-600 border border-ink"></span> Comparing / Active
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-newsprint border border-ink rounded">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-300 dark:bg-red-700 border border-ink"></span> Swapped / Pivot
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-newsprint border border-ink rounded">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 dark:bg-emerald-700 border border-ink"></span> Sorted / Found
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: STEP-BY-STEP SOLUTION LEDGER -->
+      <section class="lg:col-span-7 bg-newsprintLight border-2 border-ink rounded p-4 sm:p-6 flex flex-col justify-between min-h-[540px]">
+        <div>
+          <!-- Ledger Header -->
+          <div class="border-b-2 border-ink pb-3 mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="font-monoPress text-[11px] uppercase tracking-widest text-editorialRed font-bold">
+                SECTION B • OFFICIAL SOLUTION LEDGER
+              </span>
+              <h3 id="ledger-headline" class="font-serifHeadline font-black text-2xl sm:text-3xl text-ink leading-tight mt-0.5">
+                Bubble Sort — Complete Pass-by-Pass Proof
+              </h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="copyLedgerOutput()" class="font-monoPress text-xs px-3 py-1.5 bg-newsprint border border-ink rounded hover:bg-newsprintDark cursor-pointer font-bold">
+                COPY SOLUTION
+              </button>
+            </div>
+          </div>
+
+          <!-- Editorial Summary Strip -->
+          <div id="algo-editorial-note" class="bg-newsprint border-l-4 border-editorialNavy p-3 mb-4 text-xs sm:text-sm text-inkMuted font-serifHeadline italic">
+            "Bubble Sort repeatedly steps through adjacent elements, swapping out-of-order pairs until the largest unsorted value bubbles to its rightful position at the end of each pass."
+          </div>
+
+          <!-- Step-by-Step Ledger Stream -->
+          <div id="steps-container" class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <!-- Populated dynamically by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Final Headline Output Banner -->
+        <div id="final-result-banner" class="mt-6 border-2 border-ink bg-newsprintDark p-4 rounded">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <span class="font-monoPress text-xs font-bold uppercase tracking-widest text-editorialRed">
+              FINAL PUBLISHED RESULT:
+            </span>
+            <span id="step-count-summary" class="font-monoPress text-xs text-inkMuted">
+              TOTAL STEPS: 0
+            </span>
+          </div>
+          <p id="final-output-text" class="font-monoPress font-bold text-base sm:text-xl text-ink break-words">
+            SORTED ELEMENTS: 1, 24, 45, 53
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Broadsheet Footer -->
+    <footer class="mt-8 pt-4 double-rule-top flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-monoPress text-inkMuted">
+      <span>THE ALGORITHM CHRONICLE • BY: SAMLYSTER O. NALA (BSIT 2-1)</span>
+      <span>COMPATIBLE WITH VS CODE LIVE SERVER &amp; C++ CURRICULUM</span>
+    </footer>
+  </div>
+
+  <!-- Toast Notification (Replaces alert()) -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-200">
+    <div class="bg-ink text-newsprintLight font-monoPress text-xs sm:text-sm px-4 py-3 rounded border-2 border-editorialGold shadow-lg flex items-center gap-2">
+      <span class="text-editorialGold font-bold">★</span>
+      <span id="toast-message">Action completed.</span>
+    </div>
+  </div>
+
+  <!-- C++ Source Code Reference Modal -->
+  <div id="cpp-modal" class="fixed inset-0 z-50 hidden bg-ink/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-newsprintLight border-2 border-ink rounded max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b-2 border-ink bg-newsprintDark flex items-center justify-between">
+        <div>
+          <span class="font-monoPress text-[11px] uppercase text-editorialRed font-bold">APPENDIX • C++ REFERENCE EDITION</span>
+          <h3 class="font-serifHeadline font-bold text-lg sm:text-xl text-ink">Complete C++ Implementation (Code::Blocks / VS Code)</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="copyCppCode()" class="press-btn font-monoPress text-xs px-3 py-1.5 bg-editorialNavy text-newsprintLight border border-ink rounded cursor-pointer font-bold">
+            COPY C++ CODE
+          </button>
+          <button onclick="toggleCppModal(false)" class="press-btn font-monoPress text-xs px-3 py-1.5 bg-editorialRed text-newsprintLight border border-ink rounded cursor-pointer font-bold">
+            CLOSE [X]
+          </button>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto bg-[#1e1d1b] text-[#f4f0e8] font-monoPress text-xs sm:text-sm leading-relaxed">
+        <pre id="cpp-code-block" class="whitespace-pre-wrap"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // GLOBAL STATE & METADATA
+    // =========================================================================
+    const state = {
+      mainMode: 'sort', // 'sort' or 'search'
+      sortAlgo: 1,      // 1 to 8
+      quickPivotOption: 1, // 1 to 4
+      searchAlgo: 1,    // 1 or 2
+      lastPlainTextLog: ''
+    };
+
+    const SORT_META = {
+      1: { name: 'Bubble Sort', note: 'Bubble Sort repeatedly steps through adjacent elements, swapping out-of-order pairs until the largest unsorted value bubbles to its rightful position at the end of each pass.' },
+      2: { name: 'Selection Sort', note: 'Selection Sort divides the input into a sorted and an unsorted region, repeatedly scanning for the minimum element and swapping it into place.' },
+      3: { name: 'Insertion Sort', note: 'Insertion Sort builds the final sorted array one item at a time by repeatedly taking the next element and inserting it into its correct sorted position.' },
+      4: { name: 'Merge Sort', note: 'Merge Sort adopts a divide-and-conquer approach, recursively splitting the list in half, sorting each half, and then merging them together in order.' },
+      5: { name: 'Quick Sort', note: 'Quick Sort partitions an array around a chosen pivot element such that smaller elements move left and larger elements move right, sorting recursively.' },
+      6: { name: 'Shell Sort', note: 'Shell Sort is an optimization of insertion sort that allows the exchange of items far apart using decreasing gap sequences.' },
+      7: { name: 'Heap Sort', note: 'Heap Sort converts the array into a binary max-heap data structure, then repeatedly extracts the maximum root element and places it at the end.' },
+      8: { name: 'Comb Sort', note: 'Comb Sort improves on bubble sort by using larger gaps initially (shrunk by a shrink factor of 1.3) to eliminate turtles and small values near the end.' }
+    };
+
+    const SEARCH_META = {
+      1: { name: 'Linear Search', note: 'Linear Search sequentially checks each element of the list from the beginning until a match is found or the end of the list is reached.' },
+      2: { name: 'Binary Search', note: 'Binary Search efficiently finds the position of a target value within a sorted array by repeatedly dividing the search interval in half.' }
+    };
+
+    // =========================================================================
+    // INITIALIZATION & THEME SWITCHER
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      populateCppReference();
+      executeSort(); // Run default Bubble Sort example on load
+    });
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('chronicle-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+      applyTheme(isDark);
+    }
+
+    function applyTheme(isDark) {
+      const htmlEl = document.documentElement;
+      const iconEl = document.getElementById('theme-icon');
+      const labelEl = document.getElementById('theme-label');
+
+      if (isDark) {
+        htmlEl.classList.add('dark');
+        if (iconEl) iconEl.textContent = '☀️';
+        if (labelEl) labelEl.textContent = 'LIGHT MODE';
+      } else {
+        htmlEl.classList.remove('dark');
+        if (iconEl) iconEl.textContent = '🌙';
+        if (labelEl) labelEl.textContent = 'DARK MODE';
+      }
+    }
+
+    function toggleTheme() {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      const nextDark = !isCurrentlyDark;
+      applyTheme(nextDark);
+      localStorage.setItem('chronicle-theme', nextDark ? 'dark' : 'light');
+      showToast(nextDark ? 'Switched to Late Night Newsroom (Dark Mode).' : 'Switched to Daylight Newsprint (Light Mode).');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-box');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2800);
+    }
+
+    function switchMainMode(mode) {
+      state.mainMode = mode;
+      const tabSearch = document.getElementById('tab-search');
+      const tabSort = document.getElementById('tab-sort');
+      const panelSearch = document.getElementById('panel-search');
+      const panelSort = document.getElementById('panel-sort');
+      const deskTitle = document.getElementById('desk-title');
+
+      if (mode === 'search') {
+        tabSearch.className = 'press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-ink text-newsprintLight cursor-pointer';
+        tabSort.className = 'press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-newsprint text-ink cursor-pointer';
+        panelSearch.classList.remove('hidden');
+        panelSort.classList.add('hidden');
+        deskTitle.textContent = 'SEARCHING ALGORITHMS';
+        selectSearchAlgo(state.searchAlgo);
+      } else {
+        tabSort.className = 'press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-ink text-newsprintLight cursor-pointer';
+        tabSearch.className = 'press-btn px-4 py-2.5 rounded font-monoPress font-bold text-sm border border-ink bg-newsprint text-ink cursor-pointer';
+        panelSort.classList.remove('hidden');
+        panelSearch.classList.add('hidden');
+        deskTitle.textContent = 'SORTING ALGORITHMS';
+        selectSortAlgo(state.sortAlgo);
+      }
+    }
+
+    function handleExitReset() {
+      state.sortAlgo = 1;
+      state.quickPivotOption = 1;
+      state.searchAlgo = 1;
+      document.getElementById('sort-count').value = 4;
+      document.getElementById('sort-elements').value = '53, 24, 1, 45';
+      document.getElementById('search-count').value = 5;
+      document.getElementById('search-elements').value = '12, 34, 15, 1, 5';
+      document.getElementById('search-target').value = 34;
+      switchMainMode('sort');
+      showToast('Session Reset to Main Directory Defaults.');
+    }
+
+    function cancelToMain() {
+      showToast('Returned to Main Directory.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // INPUT PARSING & SYNCHRONIZATION
+    // =========================================================================
+    function parseNumberList(rawStr) {
+      return rawStr
+        .split(/[\s,]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+        .map(Number);
+    }
+
+    function syncCountFromArray(type) {
+      const inputEl = document.getElementById(`${type}-elements`);
+      const countEl = document.getElementById(`${type}-count`);
+      const nums = parseNumberList(inputEl.value);
+      if (nums.length > 0 && !nums.some(isNaN)) {
+        countEl.value = nums.length;
+      }
+    }
+
+    function syncCountFromInput(type) {
+      const countEl = document.getElementById(`${type}-count`);
+      const inputEl = document.getElementById(`${type}-elements`);
+      const targetCount = parseInt(countEl.value, 10);
+      if (isNaN(targetCount) || targetCount < 1 || targetCount > 25) return;
+
+      let nums = parseNumberList(inputEl.value);
+      if (nums.some(isNaN)) nums = [];
+
+      while (nums.length < targetCount) {
+        nums.push(Math.floor(Math.random() * 90) + 1);
+      }
+      if (nums.length > targetCount) {
+        nums = nums.slice(0, targetCount);
+      }
+      if (type === 'search' && state.searchAlgo === 2) {
+        nums.sort((a, b) => a - b);
+      }
+      inputEl.value = nums.join(', ');
+    }
+
+    // =========================================================================
+    // SORTING SELECTION & PRESETS
+    // =========================================================================
+    function selectSortAlgo(algoNum) {
+      state.sortAlgo = algoNum;
+      document.getElementById('option-badge').textContent = `OPTION [ ${algoNum} ]`;
+
+      document.querySelectorAll('.sort-choice-btn').forEach(btn => {
+        const id = Number(btn.getAttribute('data-sort'));
+        if (id === algoNum) {
+          btn.className = 'sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-ink text-newsprintLight font-bold cursor-pointer';
+        } else {
+          btn.className = 'sort-choice-btn text-left font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint hover:bg-newsprintDark text-ink cursor-pointer';
+        }
+      });
+
+      const qsMenu = document.getElementById('quicksort-submenu');
+      if (algoNum === 5) {
+        qsMenu.classList.remove('hidden');
+        // Load 5-element example from user's specification if currently using 4-element default
+        if (document.getElementById('sort-elements').value.trim() === '53, 24, 1, 45') {
+          loadSortPreset(5, false);
+        }
+      } else {
+        qsMenu.classList.add('hidden');
+      }
+
+      executeSort();
+    }
+
+    function selectPivotOption(pivotOpt) {
+      state.quickPivotOption = pivotOpt;
+      document.querySelectorAll('.pivot-choice-btn').forEach(btn => {
+        const id = Number(btn.getAttribute('data-pivot'));
+        if (id === pivotOpt) {
+          btn.className = 'pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-editorialNavy text-newsprintLight font-bold cursor-pointer';
+        } else {
+          btn.className = 'pivot-choice-btn w-full text-left font-monoPress text-xs p-2 rounded border border-ink bg-newsprintLight text-ink cursor-pointer';
+        }
+      });
+
+      const randBox = document.getElementById('random-pivot-box');
+      if (pivotOpt === 3) {
+        randBox.classList.remove('hidden');
+      } else {
+        randBox.classList.add('hidden');
+      }
+
+      executeSort();
+    }
+
+    function cancelQuickSort() {
+      selectSortAlgo(1);
+      showToast('Cancelled Quick Sort — Returned to Sorting Menu.');
+    }
+
+    function pickRandomFromArray() {
+      const nums = parseNumberList(document.getElementById('sort-elements').value);
+      if (nums.length > 0 && !nums.some(isNaN)) {
+        const chosen = nums[Math.floor(Math.random() * nums.length)];
+        document.getElementById('random-pivot-input').value = chosen;
+        executeSort();
+      }
+    }
+
+    function loadSortPreset(size, runNow = true) {
+      if (size === 4) {
+        document.getElementById('sort-count').value = 4;
+        document.getElementById('sort-elements').value = '53, 24, 1, 45';
+      } else {
+        document.getElementById('sort-count').value = 5;
+        document.getElementById('sort-elements').value = '53, 24, 1, 45, 3';
+      }
+      if (runNow) executeSort();
+    }
+
+    // =========================================================================
+    // SEARCHING SELECTION & PRESETS
+    // =========================================================================
+    function selectSearchAlgo(algoNum) {
+      state.searchAlgo = algoNum;
+      document.getElementById('option-badge').textContent = `OPTION [ ${algoNum} ]`;
+
+      document.querySelectorAll('.search-choice-btn').forEach(btn => {
+        const id = Number(btn.getAttribute('data-search'));
+        if (id === algoNum) {
+          btn.className = 'search-choice-btn font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-ink text-newsprintLight font-bold cursor-pointer';
+        } else {
+          btn.className = 'search-choice-btn font-monoPress text-xs sm:text-sm p-2.5 rounded border border-ink bg-newsprint text-ink cursor-pointer';
+        }
+      });
+
+      const label = document.getElementById('search-elements-label');
+      if (algoNum === 1) {
+        label.textContent = 'ENTER ELEMENTS:';
+        document.getElementById('search-count').value = 5;
+        document.getElementById('search-elements').value = '12, 34, 15, 1, 5';
+        document.getElementById('search-target').value = 34;
+      } else {
+        label.textContent = 'ENTER ELEMENTS (SORTED):';
+        document.getElementById('search-count').value = 8;
+        document.getElementById('search-elements').value = '13, 24, 31, 45, 53, 67, 70, 80';
+        document.getElementById('search-target').value = 45;
+      }
+
+      executeSearch();
+    }
+
+    function loadSearchPreset() {
+      selectSearchAlgo(state.searchAlgo);
+      showToast('Loaded specification textbook example.');
+    }
+
+    // =========================================================================
+    // STEP-BY-STEP RENDERING ENGINE
+    // =========================================================================
+    function renderLedger({ headline, note, steps, finalHeadline }) {
+      document.getElementById('ledger-headline').textContent = headline;
+      document.getElementById('algo-editorial-note').textContent = `"${note}"`;
+      document.getElementById('final-output-text').textContent = finalHeadline;
+      document.getElementById('step-count-summary').textContent = `TOTAL STEPS LOGGED: ${steps.length}`;
+
+      const container = document.getElementById('steps-container');
+      container.innerHTML = '';
+
+      const plainLines = [
+        `=== ${headline.toUpperCase()} ===`,
+        note,
+        ''
+      ];
+
+      steps.forEach((step, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-newsprint border border-ink rounded p-3 transition-colors';
+
+        const headerRow = document.createElement('div');
+        headerRow.className = 'flex flex-wrap items-center justify-between gap-2 mb-2';
+
+        const badgeTitle = document.createElement('span');
+        badgeTitle.className = 'font-monoPress text-xs font-bold uppercase px-2 py-0.5 bg-newsprintDark border border-ink rounded text-ink';
+        badgeTitle.textContent = step.label || `STEP ${idx + 1}`;
+
+        const detailText = document.createElement('span');
+        detailText.className = 'font-sansBody text-xs text-inkMuted font-medium';
+        detailText.textContent = step.detail || '';
+
+        headerRow.appendChild(badgeTitle);
+        headerRow.appendChild(detailText);
+        card.appendChild(headerRow);
+
+        // Visual Array Boxes
+        if (step.array && step.array.length > 0) {
+          const arrayRow = document.createElement('div');
+          arrayRow.className = 'flex flex-wrap items-center gap-1.5 mt-1';
+
+          step.array.forEach((val, i) => {
+            const cell = document.createElement('div');
+            let bgClass = 'bg-newsprintLight text-ink';
+
+            if (step.found && step.found.includes(i)) {
+              bgClass = 'bg-emerald-200 dark:bg-emerald-800/80 text-ink font-bold ring-2 ring-emerald-700 dark:ring-emerald-400';
+            } else if (step.sorted && step.sorted.includes(i)) {
+              bgClass = 'bg-emerald-100 dark:bg-emerald-900/50 text-ink font-semibold';
+            } else if (step.swapped && step.swapped.includes(i)) {
+              bgClass = 'bg-red-200 dark:bg-red-900/70 text-ink font-bold ring-1 ring-editorialRed';
+            } else if (step.comparing && step.comparing.includes(i)) {
+              bgClass = 'bg-amber-200 dark:bg-amber-800/60 text-ink font-bold ring-1 ring-amber-700 dark:ring-amber-400';
+            } else if (step.dimmed && step.dimmed.includes(i)) {
+              bgClass = 'bg-newsprintDark/50 text-inkMuted opacity-60';
+            }
+
+            cell.className = `min-w-[38px] px-2.5 py-1.5 border border-ink rounded text-center font-monoPress text-xs sm:text-sm ${bgClass}`;
+            cell.innerHTML = `
+              <div>${val}</div>
+              <div class="text-[9px] text-inkMuted leading-none mt-0.5">[${i}]</div>
+            `;
+            arrayRow.appendChild(cell);
+          });
+
+          card.appendChild(arrayRow);
+        }
+
+        container.appendChild(card);
+        plainLines.push(`${step.label}: [ ${step.array.join(', ')} ] — ${step.detail}`);
+      });
+
+      plainLines.push('');
+      plainLines.push(finalHeadline);
+      state.lastPlainTextLog = plainLines.join('\n');
+    }
+
+    function copyLedgerOutput() {
+      if (!state.lastPlainTextLog) return;
+      const tempArea = document.createElement('textarea');
+      tempArea.value = state.lastPlainTextLog;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempArea);
+      showToast('Step-by-step solution copied to clipboard!');
+    }
+
+    // =========================================================================
+    // SORTING ALGORITHMS (ALL 8 WITH FULL STEP RECORDING)
+    // =========================================================================
+    function executeSort() {
+      const errorBox = document.getElementById('sort-error-msg');
+      errorBox.classList.add('hidden');
+
+      const expectedCount = parseInt(document.getElementById('sort-count').value, 10);
+      const rawInput = document.getElementById('sort-elements').value;
+      const nums = parseNumberList(rawInput);
+
+      if (nums.length === 0 || nums.some(isNaN)) {
+        errorBox.textContent = 'Please enter valid numbers separated by commas or spaces.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      if (!isNaN(expectedCount) && expectedCount !== nums.length) {
+        document.getElementById('sort-count').value = nums.length;
+      }
+
+      const arr = [...nums];
+      const steps = [];
+      const algo = state.sortAlgo;
+
+      steps.push({
+        label: 'INITIAL INPUT',
+        detail: `Loaded ${arr.length} unsorted elements`,
+        array: [...arr]
+      });
+
+      if (algo === 1) {
+        // 1. BUBBLE SORT
+        const n = arr.length;
+        for (let i = 0; i < n - 1; i++) {
+          let swapped = false;
+          for (let j = 0; j < n - i - 1; j++) {
+            const a = arr[j], b = arr[j + 1];
+            if (a > b) {
+              [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+              swapped = true;
+              steps.push({
+                label: `PASS ${i + 1} • STEP`,
+                detail: `Compared ${a} > ${b} → Swapped positions [${j}] & [${j + 1}]`,
+                array: [...arr],
+                swapped: [j, j + 1],
+                sorted: Array.from({ length: i }, (_, k) => n - 1 - k)
+              });
+            } else {
+              steps.push({
+                label: `PASS ${i + 1} • CHECK`,
+                detail: `Compared ${a} <= ${b} → Kept in order`,
+                array: [...arr],
+                comparing: [j, j + 1],
+                sorted: Array.from({ length: i }, (_, k) => n - 1 - k)
+              });
+            }
+          }
+          if (!swapped) {
+            steps.push({
+              label: `PASS ${i + 1} • EARLY EXIT`,
+              detail: 'No swaps occurred during this pass; array is completely sorted.',
+              array: [...arr],
+              sorted: Array.from({ length: n }, (_, k) => k)
+            });
+            break;
+          }
+        }
+      } else if (algo === 2) {
+        // 2. SELECTION SORT
+        const n = arr.length;
+        for (let i = 0; i < n - 1; i++) {
+          let minIdx = i;
+          for (let j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIdx]) {
+              minIdx = j;
+            }
+          }
+          const oldVal = arr[i];
+          const minVal = arr[minIdx];
+          [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+          steps.push({
+            label: `PASS ${i + 1}`,
+            detail: minIdx === i
+              ? `Minimum in unsorted region is already ${minVal} at index [${i}]`
+              : `Found minimum ${minVal} at [${minIdx}] → Swapped with ${oldVal} at [${i}]`,
+            array: [...arr],
+            swapped: minIdx !== i ? [i, minIdx] : [],
+            sorted: Array.from({ length: i + 1 }, (_, k) => k)
+          });
+        }
+      } else if (algo === 3) {
+        // 3. INSERTION SORT
+        const n = arr.length;
+        for (let i = 1; i < n; i++) {
+          const key = arr[i];
+          let j = i - 1;
+          let shifts = 0;
+          while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+            shifts++;
+          }
+          arr[j + 1] = key;
+          steps.push({
+            label: `PASS ${i}`,
+            detail: shifts > 0
+              ? `Picked key ${key}, shifted ${shifts} larger element(s) right, inserted at [${j + 1}]`
+              : `Picked key ${key}; already >= ${arr[j]}, kept at [${i}]`,
+            array: [...arr],
+            swapped: [j + 1],
+            sorted: Array.from({ length: i + 1 }, (_, k) => k)
+          });
+        }
+      } else if (algo === 4) {
+        // 4. MERGE SORT
+        function mergeSortRec(left, right) {
+          if (left >= right) return;
+          const mid = Math.floor((left + right) / 2);
+          mergeSortRec(left, mid);
+          mergeSortRec(mid + 1, right);
+
+          const leftArr = arr.slice(left, mid + 1);
+          const rightArr = arr.slice(mid + 1, right + 1);
+          let i = 0, j = 0, k = left;
+          const mergedIndices = [];
+
+          while (i < leftArr.length && j < rightArr.length) {
+            if (leftArr[i] <= rightArr[j]) {
+              arr[k] = leftArr[i++];
+            } else {
+              arr[k] = rightArr[j++];
+            }
+            mergedIndices.push(k++);
+          }
+          while (i < leftArr.length) {
+            arr[k] = leftArr[i++];
+            mergedIndices.push(k++);
+          }
+          while (j < rightArr.length) {
+            arr[k] = rightArr[j++];
+            mergedIndices.push(k++);
+          }
+
+          steps.push({
+            label: `MERGE [${left}..${right}]`,
+            detail: `Merged [${leftArr.join(', ')}] & [${rightArr.join(', ')}] → [${arr.slice(left, right + 1).join(', ')}]`,
+            array: [...arr],
+            comparing: mergedIndices
+          });
+        }
+        mergeSortRec(0, arr.length - 1);
+      } else if (algo === 5) {
+        // 5. QUICK SORT (WITH 4 PIVOT MODES)
+        const pivotMode = state.quickPivotOption;
+        let firstPartitionDone = false;
+
+        function partition(low, high) {
+          let pivotIdx = high;
+          let strategyName = '';
+
+          if (pivotMode === 1) {
+            pivotIdx = low;
+            strategyName = '1st Element';
+          } else if (pivotMode === 2) {
+            pivotIdx = high;
+            strategyName = 'Last Element';
+          } else if (pivotMode === 3) {
+            const userRandVal = Number(document.getElementById('random-pivot-input').value);
+            const foundIdx = !firstPartitionDone ? arr.slice(low, high + 1).indexOf(userRandVal) : -1;
+            if (foundIdx !== -1) {
+              pivotIdx = low + foundIdx;
+              strategyName = `User Random (${userRandVal})`;
+            } else {
+              pivotIdx = low + Math.floor(Math.random() * (high - low + 1));
+              strategyName = 'Random Index';
+            }
+            firstPartitionDone = true;
+          } else if (pivotMode === 4) {
+            pivotIdx = Math.floor((low + high) / 2);
+            strategyName = 'Median Element';
+          }
+
+          const pivotVal = arr[pivotIdx];
+          // Move chosen pivot to end for standard Lomuto partition
+          [arr[pivotIdx], arr[high]] = [arr[high], arr[pivotIdx]];
+
+          let i = low - 1;
+          for (let j = low; j < high; j++) {
+            if (arr[j] < pivotVal) {
+              i++;
+              [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+          }
+          const finalPivotPos = i + 1;
+          [arr[finalPivotPos], arr[high]] = [arr[high], arr[finalPivotPos]];
+
+          steps.push({
+            label: `PARTITION [${low}..${high}]`,
+            detail: `Pivot = ${pivotVal} (${strategyName}) placed at sorted index [${finalPivotPos}]`,
+            array: [...arr],
+            swapped: [finalPivotPos],
+            comparing: Array.from({ length: high - low + 1 }, (_, k) => low + k)
+          });
+
+          return finalPivotPos;
+        }
+
+        function quickSortRec(low, high) {
+          if (low < high) {
+            const pi = partition(low, high);
+            quickSortRec(low, pi - 1);
+            quickSortRec(pi + 1, high);
+          }
+        }
+
+        quickSortRec(0, arr.length - 1);
+      } else if (algo === 6) {
+        // 6. SHELL SORT
+        const n = arr.length;
+        let passNum = 1;
+        for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+          for (let i = gap; i < n; i++) {
+            const temp = arr[i];
+            let j = i;
+            while (j >= gap && arr[j - gap] > temp) {
+              arr[j] = arr[j - gap];
+              j -= gap;
+            }
+            arr[j] = temp;
+          }
+          steps.push({
+            label: `GAP PASS ${passNum++} (GAP = ${gap})`,
+            detail: `Insertion-sorted sublists spaced ${gap} position(s) apart`,
+            array: [...arr],
+            comparing: Array.from({ length: n }, (_, idx) => idx)
+          });
+        }
+      } else if (algo === 7) {
+        // 7. HEAP SORT
+        const n = arr.length;
+        function heapify(size, i) {
+          let largest = i;
+          const l = 2 * i + 1;
+          const r = 2 * i + 2;
+          if (l < size && arr[l] > arr[largest]) largest = l;
+          if (r < size && arr[r] > arr[largest]) largest = r;
+          if (largest !== i) {
+            [arr[i], arr[largest]] = [arr[largest], arr[i]];
+            heapify(size, largest);
+          }
+        }
+
+        for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+          heapify(n, i);
+        }
+        steps.push({
+          label: 'BUILD MAX-HEAP',
+          detail: `Largest element (${arr[0]}) is now at root index [0]`,
+          array: [...arr],
+          comparing: [0]
+        });
+
+        for (let i = n - 1; i > 0; i--) {
+          const extracted = arr[0];
+          [arr[0], arr[i]] = [arr[i], arr[0]];
+          heapify(i, 0);
+          steps.push({
+            label: `EXTRACT #${n - i}`,
+            detail: `Moved max root ${extracted} to sorted index [${i}] & re-heapified`,
+            array: [...arr],
+            swapped: [i],
+            sorted: Array.from({ length: n - i }, (_, k) => n - 1 - k)
+          });
+        }
+      } else if (algo === 8) {
+        // 8. COMB SORT
+        const n = arr.length;
+        let gap = n;
+        let swapped = true;
+        let pass = 1;
+
+        while (gap !== 1 || swapped) {
+          gap = Math.floor((gap * 10) / 13);
+          if (gap < 1) gap = 1;
+          swapped = false;
+          const swappedIndices = [];
+
+          for (let i = 0; i < n - gap; i++) {
+            if (arr[i] > arr[i + gap]) {
+              [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]];
+              swapped = true;
+              swappedIndices.push(i, i + gap);
+            }
+          }
+
+          steps.push({
+            label: `COMB PASS ${pass++} (GAP = ${gap})`,
+            detail: swapped
+              ? `Compared elements with gap ${gap} and performed swaps`
+              : `No swaps needed at gap ${gap}`,
+            array: [...arr],
+            swapped: swappedIndices
+          });
+        }
+      }
+
+      // Final Completion Step
+      steps.push({
+        label: 'FINAL SORTED ARRAY',
+        detail: 'All elements arranged in ascending order.',
+        array: [...arr],
+        sorted: Array.from({ length: arr.length }, (_, idx) => idx)
+      });
+
+      const meta = SORT_META[algo];
+      let titleSuffix = '';
+      if (algo === 5) {
+        const pivotLabels = {
+          1: ' (1st Element Pivot)',
+          2: ' (Last Element Pivot)',
+          3: ' (Random Pivot)',
+          4: ' (Median Pivot)'
+        };
+        titleSuffix = pivotLabels[state.quickPivotOption] || '';
+      }
+
+      renderLedger({
+        headline: `${meta.name}${titleSuffix} — Step-by-Step Solution`,
+        note: meta.note,
+        steps,
+        finalHeadline: `SORTED ELEMENTS: ${arr.join(', ')}`
+      });
+    }
+
+    // =========================================================================
+    // SEARCHING ALGORITHMS (LINEAR & BINARY WITH STEP TRACE)
+    // =========================================================================
+    function executeSearch() {
+      const errorBox = document.getElementById('search-error-msg');
+      errorBox.classList.add('hidden');
+
+      const rawInput = document.getElementById('search-elements').value;
+      const target = Number(document.getElementById('search-target').value);
+      let nums = parseNumberList(rawInput);
+
+      if (nums.length === 0 || nums.some(isNaN) || isNaN(target)) {
+        errorBox.textContent = 'Please enter valid numbers and a valid target number to search.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('search-count').value = nums.length;
+      const steps = [];
+      let foundIndex = -1;
+
+      if (state.searchAlgo === 1) {
+        // LINEAR SEARCH
+        for (let i = 0; i < nums.length; i++) {
+          if (nums[i] === target) {
+            foundIndex = i;
+            steps.push({
+              label: `STEP ${i + 1} • INDEX [${i}]`,
+              detail: `Checked arr[${i}] = ${nums[i]} == ${target} → MATCH FOUND!`,
+              array: [...nums],
+              found: [i]
+            });
+            break;
+          } else {
+            steps.push({
+              label: `STEP ${i + 1} • INDEX [${i}]`,
+              detail: `Checked arr[${i}] = ${nums[i]} != ${target} → Continue scanning`,
+              array: [...nums],
+              comparing: [i]
+            });
+          }
+        }
+      } else {
+        // BINARY SEARCH (Ensure sorted order if user typed unsorted numbers)
+        const isSorted = nums.every((v, i, a) => i === 0 || a[i - 1] <= v);
+        if (!isSorted) {
+          nums.sort((a, b) => a - b);
+          document.getElementById('search-elements').value = nums.join(', ');
+          showToast('Array auto-sorted for Binary Search requirement.');
+        }
+
+        let left = 0;
+        let right = nums.length - 1;
+        let stepNum = 1;
+
+        while (left <= right) {
+          const mid = left + Math.floor((right - left) / 2);
+          const dimmedIndices = nums
+            .map((_, idx) => idx)
+            .filter(idx => idx < left || idx > right);
+
+          if (nums[mid] === target) {
+            foundIndex = mid;
+            steps.push({
+              label: `STEP ${stepNum++} (L=${left}, MID=${mid}, R=${right})`,
+              detail: `arr[${mid}] = ${nums[mid]} == ${target} → TARGET LOCATED AT INDEX ${mid}!`,
+              array: [...nums],
+              found: [mid],
+              dimmed: dimmedIndices
+            });
+            break;
+          } else if (nums[mid] < target) {
+            steps.push({
+              label: `STEP ${stepNum++} (L=${left}, MID=${mid}, R=${right})`,
+              detail: `arr[${mid}] = ${nums[mid]} < ${target} → Discard left half, move L = ${mid + 1}`,
+              array: [...nums],
+              comparing: [mid],
+              dimmed: dimmedIndices
+            });
+            left = mid + 1;
+          } else {
+            steps.push({
+              label: `STEP ${stepNum++} (L=${left}, MID=${mid}, R=${right})`,
+              detail: `arr[${mid}] = ${nums[mid]} > ${target} → Discard right half, move R = ${mid - 1}`,
+              array: [...nums],
+              comparing: [mid],
+              dimmed: dimmedIndices
+            });
+            right = mid - 1;
+          }
+        }
+      }
+
+      const meta = SEARCH_META[state.searchAlgo];
+      const finalMsg = foundIndex !== -1
+        ? `THE NUMBER YOU SEARCH IS IN INDEX NO: ${foundIndex}`
+        : `NUMBER ${target} NOT FOUND IN THE LIST`;
+
+      renderLedger({
+        headline: `${meta.name} — Index Lookup Proof`,
+        note: meta.note,
+        steps,
+        finalHeadline: finalMsg
+      });
+    }
+
+    // =========================================================================
+    // C++ SOURCE CODE MODAL
+    // =========================================================================
+    function toggleCppModal(open) {
+      const modal = document.getElementById('cpp-modal');
+      if (open) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    function copyCppCode() {
+      const code = document.getElementById('cpp-code-block').textContent;
+      const tempArea = document.createElement('textarea');
+      tempArea.value = code;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempArea);
+      showToast('Complete C++ code copied to clipboard!');
+    }
+
+    function populateCppReference() {
+      const cppSource = `// =========================================================================
+// SEARCHING AND SORTING ALGORITHMS
+// by: Samlyster O. Nala (BSIT 2-1)
+// =========================================================================
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+void printStep(const vector<int>& arr, const string& label) {
+    cout << "  " << label << ": [ ";
+    for (size_t i = 0; i < arr.size(); i++) {
+        cout << arr[i] << (i + 1 < arr.size() ? ", " : "");
+    }
+    cout << " ]\\n";
+}
+
+// 1. LINEAR SEARCH
+void linearSearch() {
+    int n, target, index = -1;
+    cout << "\\nENTER NUMBER OF ELEMENTS: ";
+    cin >> n;
+    vector<int> arr(n);
+    for (int i = 0; i < n; i++) cin >> arr[i];
+    cout << "ENTER NUMBER TO SEARCH: ";
+    cin >> target;
+
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == target) { index = i; break; }
+    }
+    if (index != -1)
+        cout << "THE NUMBER YOU SEARCH IS IN INDEX NO:" << index << "\\n";
+    else
+        cout << "NUMBER NOT FOUND!\\n";
+}
+
+// 2. BINARY SEARCH
+void binarySearch() {
+    int n, target, index = -1;
+    cout << "\\nENTER NUMBER OF ELEMENTS (sorted): ";
+    cin >> n;
+    vector<int> arr(n);
+    for (int i = 0; i < n; i++) cin >> arr[i];
+    cout << "ENTER NUMBER TO SEARCH: ";
+    cin >> target;
+
+    int left = 0, right = n - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == target) { index = mid; break; }
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    if (index != -1)
+        cout << "THE NUMBER YOU SEARCH IS IN INDEX NO:" << index << "\\n";
+    else
+        cout << "NUMBER NOT FOUND!\\n";
+}
+
+// SORTING ALGORITHMS WITH STEP-BY-STEP PROCESS
+void bubbleSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        bool swapped = false;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+                swapped = true;
+            }
+        }
+        printStep(arr, "Pass " + to_string(i + 1));
+        if (!swapped) break;
+    }
+}
+
+void selectionSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++)
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        swap(arr[minIdx], arr[i]);
+        printStep(arr, "Pass " + to_string(i + 1));
+    }
+}
+
+void insertionSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 1; i < n; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+        printStep(arr, "Pass " + to_string(i));
+    }
+}
+
+void merge(vector<int>& arr, int left, int mid, int right) {
+    int n1 = mid - left + 1, n2 = right - mid;
+    vector<int> L(n1), R(n2);
+    for (int i = 0; i < n1; i++) L[i] = arr[left + i];
+    for (int j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) arr[k++] = (L[i] <= R[j]) ? L[i++] : R[j++];
+    while (i < n1) arr[k++] = L[i++];
+    while (j < n2) arr[k++] = R[j++];
+    printStep(arr, "Merged [" + to_string(left) + ".." + to_string(right) + "]");
+}
+
+void mergeSort(vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}
+
+int partitionLast(vector<int>& arr, int low, int high) {
+    int pivot = arr[high], i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (arr[j] < pivot) swap(arr[++i], arr[j]);
+    }
+    swap(arr[i + 1], arr[high]);
+    printStep(arr, "Partition (pivot=" + to_string(pivot) + ")");
+    return i + 1;
+}
+
+void quickSort(vector<int>& arr, int low, int high, int choice) {
+    if (low < high) {
+        if (choice == 1) swap(arr[low], arr[high]);
+        else if (choice == 3) swap(arr[low + rand() % (high - low + 1)], arr[high]);
+        else if (choice == 4) swap(arr[low + (high - low) / 2], arr[high]);
+        int pi = partitionLast(arr, low, high);
+        quickSort(arr, low, pi - 1, choice);
+        quickSort(arr, pi + 1, high, choice);
+    }
+}
+
+void shellSort(vector<int>& arr) {
+    int n = arr.size(), step = 1;
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i], j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
+                arr[j] = arr[j - gap];
+            arr[j] = temp;
+        }
+        printStep(arr, "Gap " + to_string(gap) + " (Step " + to_string(step++) + ")");
+    }
+}
+
+void heapify(vector<int>& arr, int n, int i) {
+    int largest = i, l = 2 * i + 1, r = 2 * i + 2;
+    if (l < n && arr[l] > arr[largest]) largest = l;
+    if (r < n && arr[r] > arr[largest]) largest = r;
+    if (largest != i) { swap(arr[i], arr[largest]); heapify(arr, n, largest); }
+}
+
+void heapSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = n / 2 - 1; i >= 0; i--) heapify(arr, n, i);
+    printStep(arr, "Max-Heap Built");
+    for (int i = n - 1; i > 0; i--) {
+        swap(arr[0], arr[i]);
+        heapify(arr, i, 0);
+        printStep(arr, "Extract #" + to_string(n - i));
+    }
+}
+
+void combSort(vector<int>& arr) {
+    int n = arr.size(), gap = n, pass = 1;
+    bool swapped = true;
+    while (gap != 1 || swapped) {
+        gap = max(1, (gap * 10) / 13);
+        swapped = false;
+        for (int i = 0; i < n - gap; i++) {
+            if (arr[i] > arr[i + gap]) { swap(arr[i], arr[i + gap]); swapped = true; }
+        }
+        printStep(arr, "Pass " + to_string(pass++) + " (gap=" + to_string(gap) + ")");
+    }
+}`;
+      document.getElementById('cpp-code-block').textContent = cppSource;
+    }
+  </script>
+</body>
+</html>
